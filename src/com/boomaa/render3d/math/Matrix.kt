@@ -33,10 +33,11 @@ open class Matrix(private vararg var vectors: Vec) {
     }
 
     fun scalarMultiply(scalar: Double): Matrix {
+        val matBldr = Builder()
         for (vector in vectors) {
-            vector.scalarMultiply(scalar)
+            matBldr.add(vector.scalarMultiply(scalar))
         }
-        return this
+        return matBldr.build()
     }
 
     fun vectorMultiply(input: Vec): Vec? {
@@ -70,6 +71,10 @@ open class Matrix(private vararg var vectors: Vec) {
             return getCol(0)
         }
         return null
+    }
+
+    override fun toString(): String {
+        return "Matrix: ${vectors.asList()}"
     }
 
     object Identity {
