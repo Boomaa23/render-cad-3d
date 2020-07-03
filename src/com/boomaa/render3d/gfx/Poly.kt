@@ -8,7 +8,7 @@ import java.awt.Color
 class Poly(var name: String, vararg var triangles: Triangle) {
     constructor(name: String, triangles: List<Triangle>) : this(name, *triangles.toTypedArray())
 
-    class Builder(var name: String) : MathBuilder<Triangle, Poly>() {
+    class Builder(var name: String = "") : MathBuilder<Triangle, Poly>() {
         override fun build(): Poly {
             return Poly(name, values)
         }

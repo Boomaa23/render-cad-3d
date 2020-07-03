@@ -14,8 +14,9 @@ import javax.swing.JFrame
 import kotlin.math.*
 
 
-object Display: JFrame("CAD Renderer 3D") {
+object Display: JFrame("3D Model Renderer") {
     val triangles = ArrayList<Triangle>()
+    var scale = 1.0
     val renderPanel: MousePanel = object : MousePanel() {
         override fun paintComponent(g: Graphics) {
             val g2 = g as Graphics2D
@@ -25,16 +26,21 @@ object Display: JFrame("CAD Renderer 3D") {
         }
     }
 
+
     @JvmStatic
     fun main(args: Array<String>) {
         var stlfn = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Sphericon.stl"
         if (args.isNotEmpty()) {
             stlfn = args[0]
+            if (args.size >= 2) {
+                scale = args[1].toDouble()
+            }
         }
         STL(stlfn).polygons.forEach { triangles.addAll(it.triangles) }
 
         super.getContentPane().layout = BorderLayout()
         super.getContentPane().add(renderPanel)
+        super.setDefaultCloseOperation(EXIT_ON_CLOSE)
         super.setSize(800, 800)
         super.setVisible(true)
     }
@@ -47,10 +53,9 @@ object Display: JFrame("CAD Renderer 3D") {
 
         for (t in triangles) {
             //TODO implement scaling such that the polygons fit inside the frame
-            val sc = 0.25
-            val v1 = applyRotation(t, 0, sc)
-            val v2 = applyRotation(t, 1, sc)
-            val v3 = applyRotation(t, 2, sc)
+            val v1 = applyRotation(t, 0, scale)
+            val v2 = applyRotation(t, 1, scale)
+            val v3 = applyRotation(t, 2, scale)
 
             val minX = max(0.0, ceil(min(v1.coords[0], min(v2.coords[0], v3.coords[0])))).toInt()
             val maxX = min(img.width - 1.0, floor(max(v1.coords[0], max(v2.coords[0], v3.coords[0])))).toInt()

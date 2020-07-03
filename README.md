@@ -1,2 +1,2 @@
-# render-cad-3d
-Simple rendering engine for CAD models
+# render-model-3d
+Simple rendering engine for 3D models

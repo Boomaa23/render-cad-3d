@@ -7,12 +7,15 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.lang.IndexOutOfBoundsException
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.*
 
 class STL(private var fileLoc: String) {
-    val file = LinkedList<String>()
+    private val fileStrs = LinkedList<String>()
     val polygons = LinkedList<Poly>()
 
     init {
@@ -23,49 +26,69 @@ class STL(private var fileLoc: String) {
             }
             fileLoc = output
         }
+
         if (fileLoc.toLowerCase().contains(".stl")) {
-            File(fileLoc).forEachLine { file.add(it.trim()) }
-            var polyBldr: Poly.Builder? = null
-            var triBldr: Triangle.Builder? = null
-            if (file.size == 0 || !file.toString().contains("solid")) {
-                //TODO implement binary STL parsing
-                throw IllegalArgumentException("STL file not in ASCII format (likely binary)")
-            }
-            for (line in file) {
-                if (polyBldr == null) {
-                    if (line.contains("solid") && !line.contains("endsolid")) {
-                        val name = try {
-                            line.substring(line.indexOf("solid") + 6)
-                        } catch (ignored: IndexOutOfBoundsException) {
-                            ""
-                        }
-                        polyBldr = Poly.Builder(name)
-                    }
-                    continue
-                } else if (line.contains("vertex")) {
-                    if (triBldr == null) {
-                        triBldr = Triangle.Builder()
-                    }
-                    val ioSpcOne = line.indexOf("vertex") + 7
-                    val ioSpcTwo = line.indexOf(" ", ioSpcOne + 1)
-                    val ioSpcThree = line.indexOf(" ", ioSpcTwo + 1)
-                    triBldr.add(Vec(
+            val stlFile = File(fileLoc)
+            stlFile.forEachLine { fileStrs.add(it.trim()) }
+            if (fileStrs.toString().contains("solid")) parseASCII() else parseBinary(stlFile.toPath())
+        } else {
+            throw IllegalArgumentException("The file at \"$fileLoc\" is not a valid STL file")
+        }
+    }
+
+    private fun parseASCII() {
+        val polyBldr = Poly.Builder()
+        val triBldr = Triangle.Builder()
+        for (line in fileStrs) {
+            if (line.contains("solid") && !line.contains("endsolid")) {
+                polyBldr.name = try {
+                    line.substring(line.indexOf("solid") + 6)
+                } catch (ignored: IndexOutOfBoundsException) { "" }
+            } else if (line.contains("vertex")) {
+                val ioSpcOne = line.indexOf("vertex") + 7
+                val ioSpcTwo = line.indexOf(" ", ioSpcOne + 1)
+                val ioSpcThree = line.indexOf(" ", ioSpcTwo + 1)
+                triBldr.add(
+                    Vec(
                         line.substring(ioSpcOne, ioSpcTwo).trim().toDouble(),
                         line.substring(ioSpcTwo, ioSpcThree).trim().toDouble(),
                         line.substring(ioSpcThree).trim().toDouble()
-                    ))
-                    if (triBldr.values.size == 3) {
-                        polyBldr.add(triBldr.build())
-                        triBldr = null
-                    }
-                } else if (line.contains("endsolid")) {
-                    polygons.add(polyBldr.build())
-                    polyBldr = null
+                    )
+                )
+                if (triBldr.values.size == 3) {
+                    polyBldr.add(triBldr.build())
+                    triBldr.clear()
                 }
+            } else if (line.contains("endsolid")) {
+                polygons.add(polyBldr.build())
+                polyBldr.clear()
             }
-        } else {
-            throw IllegalArgumentException("File is not an STL file")
         }
+    }
+
+    private fun parseBinary(path: Path) {
+        val fileBytes = STLProcBA()
+        val headerOffsetBytes = 80
+        val readBytes = Files.readAllBytes(path)
+        fileBytes.addAll(readBytes.slice(headerOffsetBytes until readBytes.size).toList())
+        val numTris = fileBytes.getNextUInt32()
+        val polyBldr = Poly.Builder()
+        val triBldr = Triangle.Builder()
+        val vecBldr = Vec.Builder()
+        for (tri in 0 until numTris) {
+            fileBytes.skipBytes(12)
+            for (i in 0 until 3) {
+                for (j in 0 until 3) {
+                    vecBldr.add(fileBytes.getNextFloat32().toDouble())
+                }
+                triBldr.add(vecBldr.build())
+                vecBldr.clear()
+            }
+            polyBldr.add(triBldr.build())
+            triBldr.clear()
+            fileBytes.skipBytes(2)
+        }
+        this.polygons.add(polyBldr.build())
     }
 
     private fun downloadFile(url: String, outPath: String) {

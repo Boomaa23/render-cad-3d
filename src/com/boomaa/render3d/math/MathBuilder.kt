@@ -10,5 +10,10 @@ abstract class MathBuilder<K, V> {
         return this
     }
 
+    fun clear(): MathBuilder<K, V> {
+        values.clear()
+        return this
+    }
+
     abstract fun build(): V
 }
