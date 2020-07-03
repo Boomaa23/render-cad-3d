@@ -16,19 +16,22 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
         super.addMouseListener(this)
     }
 
-    override fun mouseMoved(e: MouseEvent?) {
-    }
-
     override fun mouseDragged(e: MouseEvent?) {
+        //TODO fix this calculation, doesn't work properly
         heading = (e?.locationOnScreen!!.x - firstPoint!!.x).toDouble()
         pitch = (e.locationOnScreen!!.y - firstPoint!!.y).toDouble()
-        println(heading)
-        println(pitch)
         super.repaint()
+    }
+
+    override fun mouseMoved(e: MouseEvent?) {
     }
 
     override fun mouseReleased(e: MouseEvent?) {
         firstPoint = null
+    }
+
+    override fun mousePressed(e: MouseEvent?) {
+        firstPoint = e!!.locationOnScreen
     }
 
     override fun mouseEntered(e: MouseEvent?) {
@@ -38,9 +41,5 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     }
 
     override fun mouseExited(e: MouseEvent?) {
-    }
-
-    override fun mousePressed(e: MouseEvent?) {
-        firstPoint = e!!.locationOnScreen
     }
 }

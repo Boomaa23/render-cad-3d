@@ -47,6 +47,34 @@ open class Vec(vararg var coords: Double) {
         }
         return vecBldr.build()
     }
+
+    fun toUnitVec(): Vec {
+        val mag = magnitude()
+        val vecBldr = Builder()
+        for (i in coords.indices) {
+            vecBldr.add(coords[i] / mag)
+        }
+        return vecBldr.build()
+    }
+
+    fun negate(): Vec {
+        val vecBldr = Builder()
+        for (coord in coords) {
+            vecBldr.add(-coord)
+        }
+        return vecBldr.build()
+    }
+
+    fun add(other: Vec): Vec? {
+        if (this.dimension() == other.dimension()) {
+            val vecBldr = Builder()
+            for (i in this.coords.indices) {
+                vecBldr.add(this.coords[i] + other.coords[i])
+            }
+            return vecBldr.build()
+        }
+        return null
+    }
     
     fun asMatrix(): Matrix {
         return Matrix(this)

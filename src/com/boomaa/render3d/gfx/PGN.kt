@@ -7,7 +7,7 @@ import java.awt.Color
 class PGN {
     init {
         Display.poly.add(
-            Polygon(
+            Poly(
                 Color.WHITE,
                 Vec(100.0, 100.0, 100.0),
                 Vec(-100.0, -100.0, 100.0),
@@ -16,7 +16,7 @@ class PGN {
             )
         )
         Display.poly.add(
-            Polygon(
+            Poly(
                 Color.RED,
                 Vec(100.0, 100.0, 100.0),
                 Vec(-100.0, -100.0, 100.0),
@@ -25,7 +25,7 @@ class PGN {
             )
         )
         Display.poly.add(
-            Polygon(
+            Poly(
                 Color.GREEN,
                 Vec(-100.0, 100.0, -100.0),
                 Vec(100.0, -100.0, -100.0),
@@ -34,7 +34,7 @@ class PGN {
             )
         )
         Display.poly.add(
-            Polygon(
+            Poly(
                 Color.BLUE,
                 Vec(-100.0, 100.0, -100.0),
                 Vec(100.0, -100.0, -100.0),
