@@ -6,8 +6,8 @@ import java.awt.Color
 
 class PGN {
     init {
-        Display.poly.add(
-            Poly(
+        Display.triangles.add(
+            Triangle(
                 Color.WHITE,
                 Vec(100.0, 100.0, 100.0),
                 Vec(-100.0, -100.0, 100.0),
@@ -15,8 +15,8 @@ class PGN {
 
             )
         )
-        Display.poly.add(
-            Poly(
+        Display.triangles.add(
+            Triangle(
                 Color.RED,
                 Vec(100.0, 100.0, 100.0),
                 Vec(-100.0, -100.0, 100.0),
@@ -24,8 +24,8 @@ class PGN {
 
             )
         )
-        Display.poly.add(
-            Poly(
+        Display.triangles.add(
+            Triangle(
                 Color.GREEN,
                 Vec(-100.0, 100.0, -100.0),
                 Vec(100.0, -100.0, -100.0),
@@ -33,8 +33,8 @@ class PGN {
 
             )
         )
-        Display.poly.add(
-            Poly(
+        Display.triangles.add(
+            Triangle(
                 Color.BLUE,
                 Vec(-100.0, 100.0, -100.0),
                 Vec(100.0, -100.0, -100.0),

@@ -17,7 +17,7 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     }
 
     override fun mouseDragged(e: MouseEvent?) {
-        //TODO fix this calculation, doesn't work properly
+        //TODO fix this calculation, doesn't work properly (maybe?)
         heading = (e?.locationOnScreen!!.x - firstPoint!!.x).toDouble()
         pitch = (e.locationOnScreen!!.y - firstPoint!!.y).toDouble()
         super.repaint()
