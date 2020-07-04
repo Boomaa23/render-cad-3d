@@ -14,9 +14,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-class STL(private var fileLoc: String) {
+class STL(private var fileLoc: String) : InputFormat() {
     private val fileStrs = LinkedList<String>()
-    val polygons = LinkedList<Poly>()
 
     init {
         if (fileLoc.toLowerCase().contains("https://")) {
@@ -30,7 +29,12 @@ class STL(private var fileLoc: String) {
         if (fileLoc.toLowerCase().contains(".stl")) {
             val stlFile = File(fileLoc)
             stlFile.forEachLine { fileStrs.add(it.trim()) }
-            if (fileStrs.toString().contains("solid")) parseASCII() else parseBinary(stlFile.toPath())
+            val allStrs = fileStrs.toString()
+            if (allStrs.contains("facet")) {
+                parseASCII()
+            } else {
+                parseBinary(stlFile.toPath())
+            }
         } else {
             throw IllegalArgumentException("The file at \"$fileLoc\" is not a valid STL file")
         }
@@ -75,6 +79,7 @@ class STL(private var fileLoc: String) {
         val polyBldr = Poly.Builder()
         val triBldr = Triangle.Builder()
         val vecBldr = Vec.Builder()
+
         for (tri in 0 until numTris) {
             fileBytes.skipBytes(12)
             for (i in 0 until 3) {

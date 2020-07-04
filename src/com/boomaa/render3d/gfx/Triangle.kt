@@ -3,7 +3,6 @@ package com.boomaa.render3d.gfx
 import com.boomaa.render3d.math.MathBuilder
 import com.boomaa.render3d.math.Matrix
 import com.boomaa.render3d.math.Vec
-import com.boomaa.render3d.math.Vec3d
 import java.awt.Color
 
 class Triangle(var color: Color = Color.WHITE, var matrix: Matrix) {

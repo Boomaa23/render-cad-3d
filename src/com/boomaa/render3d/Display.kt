@@ -3,16 +3,17 @@ package com.boomaa.render3d
 import com.boomaa.render3d.gfx.*
 import com.boomaa.render3d.math.Matrix
 import com.boomaa.render3d.math.Vec
+import com.boomaa.render3d.parser.InputFormat
+import com.boomaa.render3d.parser.OBJ
 import com.boomaa.render3d.parser.STL
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
+import java.awt.*
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.awt.image.BufferedImage
+import java.io.File
 import java.util.*
 import javax.swing.JFrame
 import kotlin.math.*
-
 
 object Display: JFrame("3D Model Renderer") {
     val triangles = ArrayList<Triangle>()
@@ -26,33 +27,45 @@ object Display: JFrame("3D Model Renderer") {
         }
     }
 
-
     @JvmStatic
     fun main(args: Array<String>) {
-        var stlfn = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Sphericon.stl"
-        if (args.isNotEmpty()) {
-            stlfn = args[0]
-            if (args.size >= 2) {
-                scale = args[1].toDouble()
-            }
+        if (args.isEmpty()) {
+            throw IllegalArgumentException("Must pass a model file and (optionally) a scale factor")
         }
-        STL(stlfn).polygons.forEach { triangles.addAll(it.triangles) }
+        val inputFn = args[0]
+        if (args.size >= 2 && args[1].isNotEmpty()) {
+            scale = args[1].toDouble()
+        }
+        when(val inputExt = inputFn.substring(inputFn.lastIndexOf('.') + 1).toLowerCase()) {
+            "obj" -> OBJ(inputFn)
+            "stl" -> STL(inputFn)
+            else -> throw IllegalArgumentException("Invalid/Not Supported file extension type \"$inputExt\"")
+        }.polygons.forEach { triangles.addAll(it.triangles) }
+
+        this.addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent) {
+                if (Config.inDemo) {
+                    File(Config.DEMO_MODEL.substring(Config.DEMO_MODEL.lastIndexOf('/') + 1)).delete()
+                }
+            }
+        })
 
         super.getContentPane().layout = BorderLayout()
         super.getContentPane().add(renderPanel)
         super.setDefaultCloseOperation(EXIT_ON_CLOSE)
-        super.setSize(800, 800)
+        super.setPreferredSize(Dimension(800, 800))
+        super.pack()
+        super.setLocationRelativeTo(null)
         super.setVisible(true)
     }
 
-    // ref http://blog.rogach.org/2015/08/how-to-create-your-own-simple-3d-render.html
     fun render(g2: Graphics2D) {
         val img = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
         val zBuffer = DoubleArray(img.width * img.height)
         Arrays.fill(zBuffer, Double.NEGATIVE_INFINITY)
 
         for (t in triangles) {
-            //TODO implement scaling such that the polygons fit inside the frame
+            //TODO implement auto scaling such that the polygons fit inside the frame
             val v1 = applyRotation(t, 0, scale)
             val v2 = applyRotation(t, 1, scale)
             val v3 = applyRotation(t, 2, scale)

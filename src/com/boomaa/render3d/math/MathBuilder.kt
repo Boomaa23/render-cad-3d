@@ -10,6 +10,11 @@ abstract class MathBuilder<K, V> {
         return this
     }
 
+    fun add(input: Array<K>): MathBuilder<K, V> {
+        input.forEach { this.values.add(it) }
+        return this
+    }
+
     fun clear(): MathBuilder<K, V> {
         values.clear()
         return this
