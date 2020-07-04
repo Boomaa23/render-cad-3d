@@ -5,21 +5,40 @@ import com.boomaa.render3d.gfx.Triangle
 import com.boomaa.render3d.math.Vec
 import java.awt.Color
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.util.*
+import kotlin.collections.HashMap
 
 class OBJ(fileLoc: String) : InputFormat() {
     private val vertices = LinkedList<Vec>()
+    private val materials = HashMap<String, Material>()
 
-    // ref https://en.wikipedia.org/wiki/Wavefront_.obj_file#File_format
     init {
-        //TODO implement texture coordinates and lines
+        var matTemp: Material? = null
+        val matFile = File(fileLoc.substring(0, fileLoc.lastIndexOf('.')) + ".mtl")
+        if (matFile.exists()) {
+            matFile.forEachLine {
+                val line = it.split(" ")
+                if (line.isNotEmpty()) {
+                    when (line[0]) {
+                        "newmtl" -> matTemp = Material(line[1])
+                        "Kd" -> {
+                            matTemp!!.red = line[1].toDouble()
+                            matTemp!!.green = line[2].toDouble()
+                            matTemp!!.blue = line[3].toDouble()
+                            materials[matTemp!!.name] = matTemp!!
+                        }
+                    }
+                }
+            }
+        }
+        var materialColor: Color? = Color.WHITE
         File(fileLoc).forEachLine {
             val line = it.split(" ")
             if (line.isNotEmpty()) {
                 when (line[0]) {
                     "v" -> vertices.add(vecFromLine(line))
-                    "f" -> polygons.add(polyFromLine(line, vertices))
+                    "usemtl" -> materialColor = if (matFile.exists()) materials[line[1]]!!.color() else Color.WHITE
+                    "f" -> polygons.add(polyFromLine(line, vertices, materialColor!!))
                 }
             }
         }
@@ -33,23 +52,20 @@ class OBJ(fileLoc: String) : InputFormat() {
         return vecBldr.build()
     }
 
-    private fun polyFromLine(line: List<String>, vertices: List<Vec>): Poly {
+    private fun polyFromLine(line: List<String>, vertices: List<Vec>, color: Color): Poly {
         val polyBldr = Poly.Builder()
-        //TODO make this work with more than just 4-gons and 3-gons, cleanup
-        if (line.size in 4..5) {
-            polyBldr.add(triFromFaceString(vertices, line, 1, 2, 3))
-            if (line.size == 5) {
-                polyBldr.add(triFromFaceString(vertices, line, 3, 4, 1))
-            }
-        } else {
-            throw IllegalArgumentException("n-gons > 4 || < 2 sides not allowed")
+        var ctr = 1
+        for (i in 0 until (line.size - 3)) {
+            val last = if ((2 + ctr) >= line.size) 1 else (2 + ctr)
+            polyBldr.add(triFromFaceString(vertices, line, color, ctr, 1 + ctr, last))
+            ctr += 2
         }
         return polyBldr.build()
     }
 
-    private fun triFromFaceString(vertices: List<Vec>, line: List<String>, p1: Int, p2: Int, p3: Int): Triangle {
+    private fun triFromFaceString(vertices: List<Vec>, line: List<String>, color: Color, p1: Int, p2: Int, p3: Int): Triangle {
         return Triangle(
-            Color.WHITE,
+            color,
             vertices[sepFaceIndex(line[p1])],
             vertices[sepFaceIndex(line[p2])],
             vertices[sepFaceIndex(line[p3])]

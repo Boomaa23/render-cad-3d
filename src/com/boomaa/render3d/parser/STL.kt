@@ -3,40 +3,23 @@ package com.boomaa.render3d.parser
 import com.boomaa.render3d.gfx.Poly
 import com.boomaa.render3d.gfx.Triangle
 import com.boomaa.render3d.math.Vec
-import java.io.BufferedInputStream
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.lang.IllegalArgumentException
 import java.lang.IndexOutOfBoundsException
-import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-class STL(private var fileLoc: String) : InputFormat() {
+class STL(fileLoc: String) : InputFormat() {
     private val fileStrs = LinkedList<String>()
 
     init {
-        if (fileLoc.toLowerCase().contains("https://")) {
-            val output = fileLoc.substring(fileLoc.lastIndexOf('/') + 1)
-            if (!File(output).exists()) {
-                downloadFile(fileLoc, output)
-            }
-            fileLoc = output
-        }
-
-        if (fileLoc.toLowerCase().contains(".stl")) {
-            val stlFile = File(fileLoc)
-            stlFile.forEachLine { fileStrs.add(it.trim()) }
-            val allStrs = fileStrs.toString()
-            if (allStrs.contains("facet")) {
-                parseASCII()
-            } else {
-                parseBinary(stlFile.toPath())
-            }
+        val stlFile = File(fileLoc)
+        stlFile.forEachLine { fileStrs.add(it.trim()) }
+        val allStrs = fileStrs.toString()
+        if (allStrs.contains("facet")) {
+            parseASCII()
         } else {
-            throw IllegalArgumentException("The file at \"$fileLoc\" is not a valid STL file")
+            parseBinary(stlFile.toPath())
         }
     }
 
@@ -72,15 +55,13 @@ class STL(private var fileLoc: String) : InputFormat() {
 
     private fun parseBinary(path: Path) {
         val fileBytes = STLProcBA()
-        val headerOffsetBytes = 80
         val readBytes = Files.readAllBytes(path)
-        fileBytes.addAll(readBytes.slice(headerOffsetBytes until readBytes.size).toList())
-        val numTris = fileBytes.getNextUInt32()
+        fileBytes.addAll(readBytes.slice(80 until readBytes.size).toList()) // 80 byte header offset
         val polyBldr = Poly.Builder()
         val triBldr = Triangle.Builder()
         val vecBldr = Vec.Builder()
 
-        for (tri in 0 until numTris) {
+        for (tri in 0 until fileBytes.getNextUInt32()) {
             fileBytes.skipBytes(12)
             for (i in 0 until 3) {
                 for (j in 0 until 3) {
@@ -94,21 +75,5 @@ class STL(private var fileLoc: String) : InputFormat() {
             fileBytes.skipBytes(2)
         }
         this.polygons.add(polyBldr.build())
-    }
-
-    private fun downloadFile(url: String, outPath: String) {
-        try {
-            BufferedInputStream(URL(url).openStream()).use { input ->
-                FileOutputStream(outPath).use { fileOutputStream ->
-                    val dataBuffer = ByteArray(1024)
-                    var bytesRead: Int
-                    while (input.read(dataBuffer, 0, 1024).also { bytesRead = it } != -1) {
-                        fileOutputStream.write(dataBuffer, 0, bytesRead)
-                    }
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
     }
 }

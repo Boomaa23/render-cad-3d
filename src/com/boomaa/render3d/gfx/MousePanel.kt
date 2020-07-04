@@ -8,6 +8,8 @@ import javax.swing.JPanel
 
 open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     private var firstPoint: Point? = null
+    private var baseHeading = 0.0
+    private var basePitch = 0.0
     var heading = 0.0
     var pitch = 0.0
 
@@ -17,9 +19,9 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     }
 
     override fun mouseDragged(e: MouseEvent?) {
-        //TODO fix this calculation, doesn't work properly (maybe?)
-        heading = (e?.locationOnScreen!!.x - firstPoint!!.x).toDouble()
-        pitch = -(e.locationOnScreen!!.y - firstPoint!!.y).toDouble()
+        //TODO implement rotation based on front facing axis
+        heading = baseHeading + (((e?.locationOnScreen!!.x - firstPoint!!.x).toDouble() / 2.0) % 360)
+        pitch = basePitch + (-((e.locationOnScreen!!.y - firstPoint!!.y).toDouble() / 2.0) % 360)
         super.repaint()
     }
 
@@ -27,6 +29,8 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     }
 
     override fun mouseReleased(e: MouseEvent?) {
+        baseHeading = heading % 360
+        basePitch = pitch % 360
         firstPoint = null
     }
 
@@ -38,6 +42,9 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     }
 
     override fun mouseClicked(e: MouseEvent?) {
+        baseHeading += heading
+        basePitch += pitch
+        firstPoint = null
     }
 
     override fun mouseExited(e: MouseEvent?) {

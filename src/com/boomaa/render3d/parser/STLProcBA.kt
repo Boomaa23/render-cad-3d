@@ -21,17 +21,17 @@ class STLProcBA : ArrayList<Byte>() {
         counter += n
     }
 
-    // Get unsigned 32-bit (4 byte) int in little endian
+    // Get 32-bit (4 byte) unsigned int in little endian
     fun getNextUInt32(): Int {
-        return ByteBuffer.wrap(nextFourBytes()).order(ByteOrder.LITTLE_ENDIAN).int
+        return nextFourByteBuffer().int
     }
 
     // Get 32-bit (4 byte) float in little endian
     fun getNextFloat32(): Float {
-        return ByteBuffer.wrap(nextFourBytes()).order(ByteOrder.LITTLE_ENDIAN).float
+        return nextFourByteBuffer().float
     }
 
-    private fun nextFourBytes(): ByteArray {
-        return this.subList(0, 4).toByteArray()
+    private fun nextFourByteBuffer(byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN): ByteBuffer {
+        return ByteBuffer.wrap(this.subList(0, 4).toByteArray()).order(byteOrder)
     }
 }
