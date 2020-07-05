@@ -6,8 +6,8 @@ import java.awt.event.FocusListener
 import javax.swing.JTextField
 
 class OverlayField(hint: String, col: Int) : JTextField(hint, col), FocusListener {
-    private val hint: String
     private var showingHint: Boolean
+    var hint: String
 
     init {
         super.setForeground(Color.GRAY)

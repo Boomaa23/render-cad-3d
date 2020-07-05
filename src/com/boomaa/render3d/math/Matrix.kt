@@ -21,6 +21,10 @@ open class Matrix(private vararg var vectors: Vec) {
         return null
     }
 
+    fun getCols(range: IntRange = vectors.indices): List<Vec> {
+        return vectors.slice(range)
+    }
+
     fun getRow(n: Int): Vec? {
         if (numRows() != null && n < numRows()!!) {
             val vecBldr = Vec.Builder()
@@ -32,7 +36,7 @@ open class Matrix(private vararg var vectors: Vec) {
         return null
     }
 
-    fun scalarMultiply(scalar: Double): Matrix {
+    fun multiply(scalar: Double): Matrix {
         val matBldr = Builder()
         for (vector in vectors) {
             matBldr.add(vector.scalarMultiply(scalar))
@@ -40,26 +44,37 @@ open class Matrix(private vararg var vectors: Vec) {
         return matBldr.build()
     }
 
-    fun vectorMultiply(input: Vec): Vec? {
-        if (input.dimension() == this.numCols() && this.numRows() != null) {
+    fun multiply(vector: Vec): Vec? {
+        if (vector.dimension() == this.numCols() && this.numRows() != null) {
             val vecBldr = Vec.Builder()
             for (i in 0 until this.numRows()!!) {
-                vecBldr.add(this.getRow(i)!!.dotProduct(input)!!)
+                vecBldr.add(this.getRow(i)!!.dotProduct(vector)!!)
             }
             return vecBldr.build()
         }
         return null
     }
 
-    fun matrixMultiply(other: Matrix): Matrix? {
-        if (this.numCols() == other.numRows() && other.numCols() != 0 && this.numRows() != null) {
+    fun multiply(matrix: Matrix): Matrix? {
+        if (this.numCols() == matrix.numRows() && matrix.numCols() != 0 && this.numRows() != null) {
             val matBldr = Builder()
-            for (colNum in 0 until other.numCols()) {
+            for (colNum in 0 until matrix.numCols()) {
                 val vecBldr = Vec.Builder()
                 for (rowNum in 0 until this.numRows()!!) {
-                    vecBldr.add(this.getRow(rowNum)!!.dotProduct(other.getCol(colNum)!!)!!)
+                    vecBldr.add(this.getRow(rowNum)!!.dotProduct(matrix.getCol(colNum)!!)!!)
                 }
                 matBldr.add(vecBldr.build())
+            }
+            return matBldr.build()
+        }
+        return null
+    }
+
+    fun add(vec: Vec): Matrix? {
+        if (this.numRows() == vec.dimension()) {
+            val matBldr = Builder()
+            for (col in this.getCols()) {
+                matBldr.add(col.add(vec)!!)
             }
             return matBldr.build()
         }

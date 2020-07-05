@@ -16,7 +16,7 @@ open class Vec(vararg var coords: Double) {
         }
         return sqrt(result)
     }
-    
+
     fun dotProduct(other: Vec): Double? {
         if (this.dimension() != other.dimension()) {
             return null
@@ -75,9 +75,25 @@ open class Vec(vararg var coords: Double) {
         }
         return null
     }
-    
+
+    fun append(other: Vec): Vec {
+        return Vec(*this.coords, *other.coords)
+    }
+
+    fun cutTo(dim: Int): Vec {
+        return Vec(this.coords.slice(0 until dim))
+    }
+
+    fun copy(): Vec {
+        return Vec(*this.coords)
+    }
+
     fun asMatrix(): Matrix {
         return Matrix(this)
+    }
+
+    fun asVec3d(): Vec3d {
+        return Vec3d(this.coords[0], this.coords[1], this.coords[2])
     }
 
     class Builder : MathBuilder<Double, Vec>() {
