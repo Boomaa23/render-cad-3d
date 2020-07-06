@@ -36,7 +36,7 @@ open class Matrix(private vararg var vectors: Vec) {
         return null
     }
 
-    fun multiply(scalar: Double): Matrix {
+    fun scalarMultiply(scalar: Double): Matrix {
         val matBldr = Builder()
         for (vector in vectors) {
             matBldr.add(vector.scalarMultiply(scalar))
@@ -44,7 +44,7 @@ open class Matrix(private vararg var vectors: Vec) {
         return matBldr.build()
     }
 
-    fun multiply(vector: Vec): Vec? {
+    fun vectorMultiply(vector: Vec): Vec? {
         if (vector.dimension() == this.numCols() && this.numRows() != null) {
             val vecBldr = Vec.Builder()
             for (i in 0 until this.numRows()!!) {
@@ -55,7 +55,7 @@ open class Matrix(private vararg var vectors: Vec) {
         return null
     }
 
-    fun multiply(matrix: Matrix): Matrix? {
+    fun matrixMultiply(matrix: Matrix): Matrix? {
         if (this.numCols() == matrix.numRows() && matrix.numCols() != 0 && this.numRows() != null) {
             val matBldr = Builder()
             for (colNum in 0 until matrix.numCols()) {

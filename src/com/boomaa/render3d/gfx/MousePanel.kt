@@ -6,7 +6,7 @@ import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
 import javax.swing.JPanel
 
-open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
+open class MousePanel(benchmark: Boolean) : JPanel(), MouseMotionListener, MouseListener {
     private var firstPoint: Point? = null
     private var accumHeader = 0.0
     private var accumPitch = 0.0
@@ -14,8 +14,10 @@ open class MousePanel : JPanel(), MouseMotionListener, MouseListener {
     var pitch = 0.0
 
     init {
-        super.addMouseMotionListener(this)
-        super.addMouseListener(this)
+        if (!benchmark) {
+            super.addMouseMotionListener(this)
+            super.addMouseListener(this)
+        }
     }
 
     override fun mouseDragged(e: MouseEvent?) {

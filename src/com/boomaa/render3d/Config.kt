@@ -79,7 +79,7 @@ object Config : JFrame("3D Model Renderer") {
 
             super.setDefaultCloseOperation(EXIT_ON_CLOSE)
             super.setPreferredSize(Dimension(290, 200))
-            super.setResizable(true)
+            super.setResizable(false)
             super.pack()
             super.setLocationRelativeTo(null)
             super.setVisible(true)

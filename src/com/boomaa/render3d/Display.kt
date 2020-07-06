@@ -21,7 +21,9 @@ import java.io.IOException
 import java.net.URL
 import java.util.*
 import javax.swing.JFrame
+import javax.swing.JOptionPane
 import kotlin.math.*
+import kotlin.system.exitProcess
 
 object Display: JFrame("3D Model Renderer") {
     private val initSize = Pair(800, 800)
@@ -30,20 +32,28 @@ object Display: JFrame("3D Model Renderer") {
     private var autoScaleFactor: Double = 2.0 / 5.0
     private var scaleManual = false
     private val triangles = ArrayList<Triangle>()
-    private val renderPanel: MousePanel = object : MousePanel() {
-        override fun paintComponent(g: Graphics) {
-            val g2 = g as Graphics2D
-            g2.color = Color.BLACK
-            g2.fillRect(0, 0, width, height)
-            render(g2)
-        }
-    }
+    private lateinit var renderPanel: MousePanel
+    private var framesDisplayed = 0L
+    private var accumDrawTime = 0L
+    private var benchmark = false
 
     @JvmStatic
     fun main(args: Array<String>) {
         if (args.isEmpty()) {
-            throw IllegalArgumentException("Must pass a model file and (optionally) a scale factor")
+            throwErrPopup("Must pass a model file and (optionally) a scale factor")
         }
+        if (args.size >= 3) {
+            benchmark = args[2].contentEquals("--benchmark")
+        }
+        this.renderPanel = object : MousePanel(benchmark) {
+            override fun paintComponent(g: Graphics) {
+                val g2 = g as Graphics2D
+                g2.color = Color.BLACK
+                g2.fillRect(0, 0, width, height)
+                render(g2)
+            }
+        }
+
         var inputFn = args[0]
         if (args.size >= 2 && args[1].isNotEmpty() && !args[1].toLowerCase().contentEquals("auto")) {
             scale = args[1].toDouble()
@@ -57,6 +67,9 @@ object Display: JFrame("3D Model Renderer") {
             inputFn = output
         }
 
+        if (!File(inputFn).exists()) {
+            throwErrPopup("File $inputFn does not exist")
+        }
         when(val inputExt = inputFn.substring(inputFn.lastIndexOf('.') + 1).toLowerCase()) {
             "obj" -> OBJ(inputFn)
             "stl" -> STL(inputFn)
@@ -76,6 +89,7 @@ object Display: JFrame("3D Model Renderer") {
                     scale = 1.0
                     dist.isset = false
                 }
+                Display.repaint()
             }
         })
 
@@ -86,19 +100,27 @@ object Display: JFrame("3D Model Renderer") {
         super.pack()
         super.setLocationRelativeTo(null)
         super.setVisible(true)
+
+        if (benchmark) {
+            benchmark()
+        }
     }
 
     fun render(g2: Graphics2D) {
+        val startDrawTime = System.currentTimeMillis()
         val img = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
         val zBuffer = DoubleArray(img.width * img.height)
         Arrays.fill(zBuffer, Double.NEGATIVE_INFINITY)
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
+        val thisHeading = renderPanel.heading
+        val thisPitch = renderPanel.pitch
+
         for (t in triangles) {
             val midPt = getMidpoint()
-            val rotMatrix = Matrix.Rotation.xz(Math.toRadians(renderPanel.heading))
-                .multiply(Matrix.Rotation.yz(Math.toRadians(renderPanel.pitch)))!!
-                .multiply(t.matrix)!!.multiply(scale).add(midPt.toVec())!!
+            val rotMatrix = Matrix.Rotation.xz(Math.toRadians(thisHeading))
+                .matrixMultiply(Matrix.Rotation.yz(Math.toRadians(thisPitch)))!!
+                .matrixMultiply(t.matrix)!!.scalarMultiply(scale).add(midPt.toVec())!!
             val v1: Vec3d = rotMatrix.getCol(0)!!.asVec3d()
             val v2: Vec3d = rotMatrix.getCol(1)!!.asVec3d()
             val v3: Vec3d = rotMatrix.getCol(2)!!.asVec3d()
@@ -150,6 +172,20 @@ object Display: JFrame("3D Model Renderer") {
         } else {
             g2.drawImage(img, 0, 0, null)
         }
+        if (benchmark) {
+            framesDisplayed++
+            g2.color = Color.WHITE
+            g2.font = Font("Arial", Font.PLAIN, 20)
+
+            accumDrawTime += System.currentTimeMillis() - startDrawTime
+            g2.drawString("Avg FPS: ${(framesDisplayed / (accumDrawTime / 1000.0)).round(4)}", 10, 20)
+        }
+    }
+
+    fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return round(this * multiplier) / multiplier
     }
 
     private fun getMidpoint(): Vec3d {
@@ -172,7 +208,23 @@ object Display: JFrame("3D Model Renderer") {
         }
     }
 
-    private class DistExtrema {
+    fun benchmark(durationSec: Int = 20) {
+        val startTime = System.currentTimeMillis()
+        while (System.currentTimeMillis() < (startTime + (durationSec * 1000L))) {
+            renderPanel.heading = (renderPanel.heading + 0.000001) % 360
+            renderPanel.pitch = (renderPanel.pitch + 0.000001) % 360
+            super.repaint()
+        }
+        println("${framesDisplayed / durationSec.toDouble()} FPS (${framesDisplayed} frames in $durationSec seconds)")
+        exitProcess(0)
+    }
+
+    private fun throwErrPopup(message: String) {
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
+        throw IllegalArgumentException(message)
+    }
+
+    class DistExtrema {
         var min: Double = 0.0
         var max: Double = 0.0
         var isset: Boolean = false

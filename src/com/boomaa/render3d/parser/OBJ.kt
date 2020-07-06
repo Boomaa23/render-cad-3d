@@ -10,23 +10,18 @@ import kotlin.collections.HashMap
 
 class OBJ(fileLoc: String) : InputFormat() {
     private val vertices = LinkedList<Vec>()
-    private val materials = HashMap<String, Material>()
+    private val materials = HashMap<String, Color>()
 
     init {
-        var matTemp: Material? = null
+        var matTemp = ""
         val matFile = File(fileLoc.substring(0, fileLoc.lastIndexOf('.')) + ".mtl")
         if (matFile.exists()) {
             matFile.forEachLine {
-                val line = it.split(" ")
+                val line = it.split(" ").toTypedArray()
                 if (line.isNotEmpty()) {
                     when (line[0]) {
-                        "newmtl" -> matTemp = Material(line[1])
-                        "Kd" -> {
-                            matTemp!!.red = line[1].toDouble()
-                            matTemp!!.green = line[2].toDouble()
-                            matTemp!!.blue = line[3].toDouble()
-                            materials[matTemp!!.name] = matTemp!!
-                        }
+                        "newmtl" -> matTemp = line[1]
+                        "Kd" -> materials[matTemp] = matToColor(line)
                     }
                 }
             }
@@ -37,8 +32,8 @@ class OBJ(fileLoc: String) : InputFormat() {
             if (line.isNotEmpty()) {
                 when (line[0]) {
                     "v" -> vertices.add(vecFromLine(line))
-                    "usemtl" -> materialColor = if (matFile.exists()) materials[line[1]]!!.color() else Color.WHITE
                     "f" -> polygons.add(polyFromLine(line, vertices, materialColor!!))
+                    "usemtl" -> materialColor = if (matFile.exists()) materials[line[1]] else Color.WHITE
                 }
             }
         }
@@ -74,5 +69,9 @@ class OBJ(fileLoc: String) : InputFormat() {
 
     private fun sepFaceIndex(poly: String): Int {
         return poly.split('/')[0].toInt() - 1
+    }
+
+    private fun matToColor(line: Array<String>): Color {
+        return Color((line[1].toDouble() * 255).toInt(), (line[2].toDouble() * 255).toInt(), (line[3].toDouble() * 255).toInt())
     }
 }

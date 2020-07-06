@@ -1,9 +1,9 @@
 package com.boomaa.render3d.math
 
-import java.util.*
+import kotlin.collections.ArrayList
 
 abstract class MathBuilder<K, V> {
-    val values = LinkedList<K>()
+    val values = ArrayList<K>()
 
     fun add(input: K): MathBuilder<K, V> {
         this.values.add(input)
