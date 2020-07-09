@@ -28,9 +28,9 @@ import kotlin.system.exitProcess
 object Display: JFrame("3D Model Renderer") {
     private val initSize = Pair(800, 800)
     private var dist = DistExtrema()
-    private var scale: Double = 1.0
+    var scale: Double = 1.0
     private var autoScaleFactor: Double = 2.0 / 5.0
-    private var scaleManual = false
+    var scaleManual = false
     private val triangles = ArrayList<Triangle>()
     private lateinit var renderPanel: MousePanel
     private var framesDisplayed = 0L

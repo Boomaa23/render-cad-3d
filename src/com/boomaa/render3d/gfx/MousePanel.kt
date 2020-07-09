@@ -1,12 +1,11 @@
 package com.boomaa.render3d.gfx
 
+import com.boomaa.render3d.Display
 import java.awt.Point
-import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
-import java.awt.event.MouseMotionListener
+import java.awt.event.*
 import javax.swing.JPanel
 
-open class MousePanel(benchmark: Boolean) : JPanel(), MouseMotionListener, MouseListener {
+open class MousePanel(benchmark: Boolean) : JPanel(), MouseMotionListener, MouseListener, MouseWheelListener {
     private var firstPoint: Point? = null
     private var accumHeader = 0.0
     private var accumPitch = 0.0
@@ -17,6 +16,7 @@ open class MousePanel(benchmark: Boolean) : JPanel(), MouseMotionListener, Mouse
         if (!benchmark) {
             super.addMouseMotionListener(this)
             super.addMouseListener(this)
+            super.addMouseWheelListener(this)
         }
     }
 
@@ -50,5 +50,18 @@ open class MousePanel(benchmark: Boolean) : JPanel(), MouseMotionListener, Mouse
     }
 
     override fun mouseExited(e: MouseEvent?) {
+    }
+
+    override fun mouseWheelMoved(e: MouseWheelEvent?) {
+        if (e != null) {
+            val tmpScl = Display.scale
+            if (tmpScl - e.unitsToScroll >= 0) {
+                Display.scale -= e.unitsToScroll
+            }
+            if (!Display.scaleManual) {
+                Display.scaleManual = true
+            }
+            super.repaint()
+        }
     }
 }
