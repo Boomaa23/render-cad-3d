@@ -55,8 +55,9 @@ open class MousePanel(benchmark: Boolean) : JPanel(), MouseMotionListener, Mouse
     override fun mouseWheelMoved(e: MouseWheelEvent?) {
         if (e != null) {
             val tmpScl = Display.scale
-            if (tmpScl - e.unitsToScroll >= 0) {
-                Display.scale -= e.unitsToScroll
+            val remScl = e.unitsToScroll * Display.dist.scaleAssoc / 8.0
+            if (tmpScl - remScl >= 0) {
+                Display.scale -= remScl
             }
             if (!Display.scaleManual) {
                 Display.scaleManual = true

@@ -27,7 +27,7 @@ import kotlin.system.exitProcess
 
 object Display: JFrame("3D Model Renderer") {
     private val initSize = Pair(800, 800)
-    private var dist = DistExtrema()
+    var dist = DistExtrema()
     var scale: Double = 1.0
     private var autoScaleFactor: Double = 2.0 / 5.0
     var scaleManual = false
@@ -168,6 +168,7 @@ object Display: JFrame("3D Model Renderer") {
         if (!scaleManual && !dist.isset) {
             dist.isset = true
             scale = ((min(width.toDouble(), height.toDouble()) / (abs(dist.max) + abs(dist.min))) * (autoScaleFactor))
+            dist.scaleAssoc = scale
             super.repaint()
         } else {
             g2.drawImage(img, 0, 0, null)
@@ -228,5 +229,6 @@ object Display: JFrame("3D Model Renderer") {
         var min: Double = 0.0
         var max: Double = 0.0
         var isset: Boolean = false
+        var scaleAssoc = 1.0
     }
 }
