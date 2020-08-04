@@ -4,8 +4,8 @@ import com.boomaa.render3d.gfx.MousePanel
 import com.boomaa.render3d.gfx.Shader
 import com.boomaa.render3d.gfx.Triangle
 import com.boomaa.render3d.math.MathUtil
-import com.boomaa.render3d.math.Matrix
-import com.boomaa.render3d.math.Vec3d
+import com.boomaa.render3d.math.fixed.FixedMatrix3d
+import com.boomaa.render3d.math.fixed.FixedVec3d
 import com.boomaa.render3d.parser.OBJ
 import com.boomaa.render3d.parser.STL
 import java.awt.*
@@ -113,17 +113,15 @@ object Display: JFrame("3D Model Renderer") {
         Arrays.fill(zBuffer, Double.NEGATIVE_INFINITY)
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        val thisHeading = renderPanel.heading
-        val thisPitch = renderPanel.pitch
+        val rotMatrix = FixedMatrix3d.Rotation.xz(Math.toRadians(renderPanel.heading))
+            .matrixMultiply(FixedMatrix3d.Rotation.yz(Math.toRadians(renderPanel.pitch)))
 
         for (t in triangles) {
             val midPt = getMidpoint()
-            val rotMatrix = Matrix.Rotation.xz(Math.toRadians(thisHeading))
-                .matrixMultiply(Matrix.Rotation.yz(Math.toRadians(thisPitch)))!!
-                .matrixMultiply(t.matrix)!!.scalarMultiply(scale).add(midPt.toVec())!!
-            val v1: Vec3d = rotMatrix.getCol(0)!!.asVec3d()
-            val v2: Vec3d = rotMatrix.getCol(1)!!.asVec3d()
-            val v3: Vec3d = rotMatrix.getCol(2)!!.asVec3d()
+            val scaleMatrix = rotMatrix.matrixMultiply(t.matrix).scalarMultiply(scale).add(midPt)
+            val v1: FixedVec3d = scaleMatrix.getCol(0)
+            val v2: FixedVec3d = scaleMatrix.getCol(1)
+            val v3: FixedVec3d = scaleMatrix.getCol(2)
 
             if (!dist.isset) {
                 val currMax: Double = MathUtil.maxAbsCompare(
@@ -144,7 +142,7 @@ object Display: JFrame("3D Model Renderer") {
             val minY = max(0.0, ceil(minOf(v1.y, v2.y, v3.y))).toInt()
             val maxY = min(img.height - 1.0, floor(maxOf(v1.y, v2.y, v3.y))).toInt()
 
-            val cross = v2.add(v1.negate())!!.crossProduct(v3.add(v1.negate())!!)!!.toUnitVec().asVec3d()
+            val cross = v2.add(v1.negate()).crossProduct(v3.add(v1.negate())).toUnitVec()
             val triArea: Double = (v1.y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - v1.x)
 
             for (y in minY..maxY) {
@@ -189,8 +187,8 @@ object Display: JFrame("3D Model Renderer") {
         return round(this * multiplier) / multiplier
     }
 
-    private fun getMidpoint(): Vec3d {
-        return Vec3d(width / 2.0, height / 2.0, 0.0)
+    private fun getMidpoint(): FixedVec3d {
+        return FixedVec3d(width / 2.0, height / 2.0, 0.0)
     }
 
     private fun downloadFile(url: String, outPath: String) {

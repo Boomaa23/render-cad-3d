@@ -3,6 +3,8 @@ package com.boomaa.render3d.math
 import kotlin.math.abs
 
 object MathUtil {
+    const val FIXED_MATH_REPLACE_MESSAGE = "Replaced by FixedMath classes";
+
     fun maxAbsCompare(v1: Double, v2: Double, v3: Double): Double {
         return when (abs(v1).coerceAtLeast(abs(v2).coerceAtLeast(abs(v3)))) {
             abs(v1) -> v1

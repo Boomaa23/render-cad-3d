@@ -2,14 +2,14 @@ package com.boomaa.render3d.parser
 
 import com.boomaa.render3d.gfx.Poly
 import com.boomaa.render3d.gfx.Triangle
-import com.boomaa.render3d.math.Vec
+import com.boomaa.render3d.math.fixed.FixedVec3d
 import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
 
 class OBJ(fileLoc: String) : InputFormat() {
-    private val vertices = LinkedList<Vec>()
+    private val vertices = LinkedList<FixedVec3d>()
     private val materials = HashMap<String, Color>()
 
     init {
@@ -39,15 +39,11 @@ class OBJ(fileLoc: String) : InputFormat() {
         }
     }
 
-    private fun vecFromLine(line: List<String>): Vec {
-        val vecBldr = Vec.Builder()
-        for (i in 1 until line.size) {
-            vecBldr.add(line[i].toDouble())
-        }
-        return vecBldr.build()
+    private fun vecFromLine(line: List<String>): FixedVec3d {
+        return FixedVec3d(line[1].toDouble(), line[2].toDouble(), line[3].toDouble())
     }
 
-    private fun polyFromLine(line: List<String>, vertices: List<Vec>, color: Color): Poly {
+    private fun polyFromLine(line: List<String>, vertices: List<FixedVec3d>, color: Color): Poly {
         val polyBldr = Poly.Builder()
         var ctr = 1
         for (i in 0 until (line.size - 3)) {
@@ -58,7 +54,7 @@ class OBJ(fileLoc: String) : InputFormat() {
         return polyBldr.build()
     }
 
-    private fun triFromFaceString(vertices: List<Vec>, line: List<String>, color: Color, p1: Int, p2: Int, p3: Int): Triangle {
+    private fun triFromFaceString(vertices: List<FixedVec3d>, line: List<String>, color: Color, p1: Int, p2: Int, p3: Int): Triangle {
         return Triangle(
             color,
             vertices[sepFaceIndex(line[p1])],

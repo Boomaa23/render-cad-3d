@@ -1,7 +1,10 @@
-package com.boomaa.render3d.math
+package com.boomaa.render3d.math.variable
 
+import com.boomaa.render3d.math.MathBuilder
+import com.boomaa.render3d.math.MathUtil
 import kotlin.math.sqrt
 
+@Deprecated(MathUtil.FIXED_MATH_REPLACE_MESSAGE)
 open class Vec(vararg var coords: Double) {
     constructor(coords: List<Double>) : this(*coords.toDoubleArray())
 
@@ -93,7 +96,11 @@ open class Vec(vararg var coords: Double) {
     }
 
     fun asVec3d(): Vec3d {
-        return Vec3d(this.coords[0], this.coords[1], this.coords[2])
+        return Vec3d(
+            this.coords[0],
+            this.coords[1],
+            this.coords[2]
+        )
     }
 
     class Builder : MathBuilder<Double, Vec>() {

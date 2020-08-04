@@ -1,8 +1,11 @@
-package com.boomaa.render3d.math
+package com.boomaa.render3d.math.variable
 
+import com.boomaa.render3d.math.MathBuilder
+import com.boomaa.render3d.math.MathUtil
 import kotlin.math.cos
 import kotlin.math.sin
 
+@Deprecated(MathUtil.FIXED_MATH_REPLACE_MESSAGE)
 open class Matrix(private vararg var vectors: Vec) {
     constructor(vectors: List<Vec>) : this(*vectors.toTypedArray())
 
